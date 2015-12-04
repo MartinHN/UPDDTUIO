@@ -237,7 +237,7 @@ int main(int a,char** args){
   #if DEACTIVATEMOUSE
   TBApiMousePortInterfaceEnableEx(device,0);
   #endif
-  int delta = 1000;//1000;
+  int delta = 10000;//1000;
 
   int count = 0;
  
