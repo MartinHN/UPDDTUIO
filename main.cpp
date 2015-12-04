@@ -16,6 +16,8 @@ using namespace TUIO;
 
 #define TOUCHSIZE 12
 
+#define DEACTIVATEMOUSE 1
+
 #define DBG(x) std::cout << x << std::endl;
 #define DBGN(x) std::cout << x ;
 
@@ -87,7 +89,7 @@ void updateTouches(float x, float y){
       points[i].active = true;
       points[i].pressTime = curTime;
       points[i].newOne = false;
-      DBG("found: " <<i << "," <<  curTime);
+      // DBG("found: " <<i << "," <<  curTime);
       displayTouch(i,points[i]);
       
       return;
@@ -102,7 +104,7 @@ void updateTouches(float x, float y){
         float dist = sqdistance(cP,points[i]);
         DBGN(points[i].x << ",");
       }
-      DBG("adding : " << numTouch << ": at " << points[numTouch].pressTime);
+      // DBG("adding : " << numTouch << ": at " << points[numTouch].pressTime);
     // displayTouch(numTouch,points[numTouch]);
     
 
@@ -163,34 +165,34 @@ void TBAPI fnCallBack(unsigned long context, _PointerData* data)
               memcpy(myPoints,points,sizeof(point)*TOUCHSIZE);  
             }
 
-            else if(data->type == _ReadDataTypeZ){
-                std::cout <<" z=" <<(int)data->pd.z.rawz << std::endl; 
-            }
-            else if(data->type == _ReadDataTypeEvent){
-              DBG((int)data->pd.event.left <<"  / " <<(int)data->pd.event.right << "," << data->pd.event.timed);
-            }
-            else if(data->type == _ReadDataTypeRawEvent){
+           //  else if(data->type == _ReadDataTypeZ){
+           //      std::cout <<" z=" <<(int)data->pd.z.rawz << std::endl; 
+           //  }
+           //  else if(data->type == _ReadDataTypeEvent){
+           //    DBG((int)data->pd.event.left <<"  / " <<(int)data->pd.event.right << "," << data->pd.event.timed);
+           //  }
+           //  else if(data->type == _ReadDataTypeRawEvent){
 
-              if(data->pd.rawEvent.eventHandle == 0 ){
+           //    if(data->pd.rawEvent.eventHandle == 0 ){
 
-                // numTouch += data->pd.rawEvent.state?1 : -1;
+           //      // numTouch += data->pd.rawEvent.state?1 : -1;
 
-              }
-                DBG(data->pd.rawEvent.eventHandle << " / " << // handle to event object if -1 this callback indicates the end of 
+           //    }
+           //      DBG(data->pd.rawEvent.eventHandle << " / " << // handle to event object if -1 this callback indicates the end of 
               
-           // event bit processing for the packet - and the state flag below is not  populated 
-              (int)data->pd.rawEvent.state<< " / " <<   // state of event 1 = set
-              data->pd.rawEvent.timed<< " / " <<
-               data->pd.rawEvent.wasToolbarTouch<< " / " <<
-               data->pd.rawEvent.gesture)
-            }
-            else if(data->type==_ReadDataTypeData){
-              for(int i = 0 ; i < 64 ; i++){
-                DBGN((int)data->pd.data.byte[i]);
-              }
-              DBG("");
+           // // event bit processing for the packet - and the state flag below is not  populated 
+           //    (int)data->pd.rawEvent.state<< " / " <<   // state of event 1 = set
+           //    data->pd.rawEvent.timed<< " / " <<
+           //     data->pd.rawEvent.wasToolbarTouch<< " / " <<
+           //     data->pd.rawEvent.gesture)
+           //  }
+           //  else if(data->type==_ReadDataTypeData){
+           //    for(int i = 0 ; i < 64 ; i++){
+           //      DBGN((int)data->pd.data.byte[i]);
+           //    }
+           //    DBG("");
 
-            }
+           //  }
             // else if (data->type == _ReadDataTypePhysicalEvent ){
             //  DBG("physical : " << data->pd.physicalEvent.state); 
             // }
@@ -232,8 +234,9 @@ int main(int a,char** args){
 
   // TBApiRawDataMode(device, true);         
   //          TBApiRawDataModeBlockSize(device , 1);
+  #if DEACTIVATEMOUSE
   TBApiMousePortInterfaceEnableEx(device,0);
-  
+  #endif
   int delta = 1000;//1000;
 
   int count = 0;
@@ -244,21 +247,12 @@ int main(int a,char** args){
   currentTime.initSession();
   tuioServer.setVerbose(true);
             while(1){
-                          
               updateTuio();
               memcpy(points,myPoints,sizeof(point)*TOUCHSIZE);    
-              //tuioServer.stopUntouchedMovingCursors();
               tuioServer.commitFrame();
               currentTime = TuioTime::getSessionTime();
               tuioServer.initFrame(currentTime);
-              
-              // currentTime = TuioTime::getSessionTime();
-              // tuioServer.initFrame(currentTime);
-              //   DBG("t" << currentTime.getMicroseconds())
-                
-              //   // tuioServer.stopUntouchedMovingCursors();
-              //   tuioServer.commitFrame();
-                
+
 
                 usleep(delta);
 
@@ -275,7 +269,9 @@ void myExit(int t){
   TBApiUnregisterDataCallback(fnCallBack);                           // unregister functions before exit
   TBApiClose();                                                                   // close the driver connection
   TBApiTerminate();
+  #if DEACTIVATEMOUSE
   TBApiMousePortInterfaceEnableEx(device,1);
+  #endif
   exit(0);
                                                              // and conclude use of API
 }
