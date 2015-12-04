@@ -123,23 +123,27 @@ void updateTuio(){
       myPoints[i].newOne = false;
       numTouch++;
     }
-    else if(myPoints[i].active && myPoints[i].cursor!=NULL){
-      if( i>=numTouch || curTime - myPoints[i].pressTime>THRESHTIME){
+    else if( myPoints[i].active && myPoints[i].cursor!=NULL){
+      if( falt || curTime - myPoints[i].pressTime>THRESHTIME){
         
         DBG("tmeOUtT : " <<i<<", "<<curTime <<","<< myPoints[i].pressTime );
         tuioServer.removeTuioCursor(myPoints[i].cursor);
         myPoints[i].cursor = NULL;
         myPoints[i].active = false;
         myPoints[i].newOne = false;
-        numTouch =i;
-        // break;
+
       }
       else {
         tuioServer.updateTuioCursor(myPoints[i].cursor,myPoints[i].x,myPoints[i].y);
       }
     }
   else{
+  		if(!falt){
+		numTouch =i;
+	}
     falt = true;
+
+    
     // DBGN(i << " : " <<myPoints[i].active <<","<< curTime <<","<<myPoints[i].pressTime << "/" );
 
   }
